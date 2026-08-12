@@ -407,7 +407,9 @@ function renderBars() {
 
 function renderRecent() {
   const list = [...state.tx].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
-  $("#recentList").innerHTML = list.length ? list.map((t) => txItemHtml(t, true)).join("") : '<p class="hint" style="padding:8px 0">Belum ada transaksi. Tekan tombol + untuk mulai.</p>';
+  $("#recentList").innerHTML = list.length ? list.map((t) =>
+    state.pendingDel.ids.includes(t.id) ? undoRowHtml(t) : txItemHtml(t, true)
+  ).join("") : '<p class="hint" style="padding:8px 0">Belum ada transaksi. Tekan tombol + untuk mulai.</p>';
 }
 
 function txItemHtml(t, withDel) {
