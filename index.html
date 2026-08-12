@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6F2EA">
+<title>Arus — Tau uangmu ke mana</title>
+<link rel="stylesheet" href="styles.css?v=4">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-6 4 3 7-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 6h6v6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="brand-name">Arus</span>
+  </div>
+</header>
+
+<main id="app">
+  <!-- ============ RINGKASAN ============ -->
+  <section id="view-dash" class="view">
+    <div class="saldo-card">
+      <div class="saldo-label">Saldo <span id="saldoPeriod" class="chip"></span></div>
+      <div class="saldo-num" id="saldoNum">Rp 0</div>
+      <div class="saldo-sub" id="saldoSub">Belum ada transaksi bulan ini</div>
+    </div>
+
+    <div id="emptyState" class="empty" hidden>
+      <div class="empty-art" aria-hidden="true"><svg viewBox="0 0 96 96" width="84" height="84"><circle cx="48" cy="48" r="42" fill="var(--surface-2)"/><circle cx="35" cy="37" r="10" fill="var(--accent)"/><circle cx="35" cy="37" r="7.5" fill="none" stroke="var(--accent-ink)" stroke-width="2" opacity=".85"/><rect x="30" y="52" width="38" height="26" rx="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="2.5"/><path d="M30 59h38" stroke="var(--accent)" stroke-width="2.5"/><circle cx="62" cy="63" r="5.5" fill="var(--accent)"/></svg></div>
+      <div class="empty-title">Mulai catat keuanganmu</div>
+      <p class="empty-text">Arus simpan semua datamu di perangkat ini. Privat, tanpa akun, tanpa iklan.</p>
+      <div class="empty-actions">
+        <button class="btn primary" id="emptyAdd">Catat transaksi</button>
+        <button class="btn ghost" id="emptySeed">Isi contoh data</button>
+      </div>
+    </div>
+
+    <div id="dashMeta" class="view">
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-label">Masuk</div>
+        <div class="stat-num pos" id="statIn">Rp 0</div>
+        <div class="stat-delta" id="deltaIn"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Keluar</div>
+        <div class="stat-num neg" id="statOut">Rp 0</div>
+        <div class="stat-delta" id="deltaOut"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Tabungan bulan ini</h2>
+        <span class="chip" id="savingsRate">0%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="savingsBar" style="width:0%"></div></div>
+      <p class="hint" id="savingsHint">Simpan minimal 20% penghasilanmu, ya.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Pengeluaran per kategori</h2></div>
+      <div id="donutWrap" class="donut-wrap"></div>
+      <div id="donutLegend" class="legend"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Rekap</h2><span class="card-hint">ketuk batang</span></div>
+      <div class="range-chips" id="rangeChips" role="tablist" aria-label="Rentang waktu rekap"></div>
+      <div class="range-sum" id="rangeSum">
+        <div class="rs-item"><span class="rs-label">Pemasukan</span><span class="rs-val pos" id="rsIn">Rp 0</span></div>
+        <div class="rs-item"><span class="rs-label">Pengeluaran</span><span class="rs-val neg" id="rsOut">Rp 0</span></div>
+        <div class="rs-item"><span class="rs-label">Selisih</span><span class="rs-val" id="rsNet">Rp 0</span></div>
+      </div>
+      <div class="chart-block">
+        <div class="chart-title">Tren Saldo</div>
+        <svg id="saldoChart" class="saldo-chart" viewBox="0 0 340 118" preserveAspectRatio="none" role="img" aria-label="Grafik tren saldo"></svg>
+        <div class="chart-legend" id="saldoLegend"></div>
+      </div>
+      <div class="chart-block">
+        <div class="chart-title">Pemasukan &amp; Pengeluaran</div>
+        <div class="bars-wrap">
+          <div id="monthBars" class="month-bars"></div>
+          <div id="barPop" class="bar-pop" hidden></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Transaksi terakhir</h2>
+        <button class="link-btn" data-goto="history">Semua</button>
+      </div>
+      <div id="recentList" class="tx-list"></div>
+    </div>
+
+    </div>
+  </section>
+
+  <!-- ============ RIWAYAT ============ -->
+  <section id="view-history" class="view" hidden>
+    <div class="filters">
+      <div class="dd" data-dd="month">
+        <button type="button" class="dd-btn" id="ddBtnMonth" aria-haspopup="listbox" aria-expanded="false">Semua bulan</button>
+        <div class="dd-panel" id="ddPanelMonth" role="listbox" hidden></div>
+      </div>
+      <div class="dd" data-dd="type">
+        <button type="button" class="dd-btn" id="ddBtnType" aria-haspopup="listbox" aria-expanded="false">Semua</button>
+        <div class="dd-panel" id="ddPanelType" role="listbox" hidden></div>
+      </div>
+      <div class="dd" data-dd="cat">
+        <button type="button" class="dd-btn" id="ddBtnCat" aria-haspopup="listbox" aria-expanded="false">Semua kategori</button>
+        <div class="dd-panel" id="ddPanelCat" role="listbox" hidden></div>
+      </div>
+    </div>
+    <div id="rangeNote" class="range-note" hidden>
+      <span>Rentang: <b id="rangeNoteTxt"></b></span>
+      <button id="rangeNoteX" class="range-note-x" aria-label="Hapus filter rentang">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div id="historyList" class="tx-list history"></div>
+    <div id="historyEmpty" class="empty small" hidden>
+      <div class="empty-art" aria-hidden="true"><svg viewBox="0 0 96 96" width="72" height="72"><circle cx="48" cy="48" r="42" fill="var(--surface-2)"/><circle cx="35" cy="37" r="10" fill="var(--accent)"/><circle cx="35" cy="37" r="7.5" fill="none" stroke="var(--accent-ink)" stroke-width="2" opacity=".85"/><rect x="30" y="52" width="38" height="26" rx="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="2.5"/><path d="M30 59h38" stroke="var(--accent)" stroke-width="2.5"/><circle cx="62" cy="63" r="5.5" fill="var(--accent)"/></svg></div>
+      <div class="empty-title">Tidak ada transaksi</div>
+      <p class="empty-text">Coba ubah filter, atau catat transaksi baru.</p>
+      <div class="empty-actions"><button class="btn primary" id="historyEmptyAdd">Catat transaksi</button></div>
+    </div>
+  </section>
+
+  <!-- ============ PENGATURAN ============ -->
+  <section id="view-settings" class="view" hidden>
+    <div class="card">
+      <div class="card-head"><h2>Tampilan</h2></div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-title">Mode gelap</div>
+          <div class="setting-desc">Lebih nyaman di malam hari</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="darkToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Data</h2></div>
+      <div class="setting-row"><div class="setting-title">Cadangkan data</div>
+        <button class="btn ghost" id="exportBtn">Export JSON</button></div>
+      <div class="setting-row"><div class="setting-title">Pulihkan dari cadangan</div>
+        <label class="btn ghost" for="importFile">Import JSON</label>
+        <input type="file" id="importFile" accept=".json" hidden></div>
+      <div class="setting-row"><div class="setting-title">Contoh data</div>
+        <button class="btn ghost" id="seedBtn">Isi</button></div>
+      <div class="setting-row danger"><div class="setting-title">Hapus semua data</div>
+        <button class="btn danger" id="resetBtn">Hapus</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Perlindungan</h2></div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-title">Tanya sebelum hapus</div>
+          <div class="setting-desc">Minta konfirmasi tiap kali menghapus transaksi</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="askDelToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Tentang</h2></div>
+      <p class="hint">Arus v1.0 — pencatat keuangan pribadi. Semua data tersimpan lokal di perangkatmu (localStorage). Tanpa server, tanpa akun, tanpa iklan.</p>
+    </div>
+  </section>
+
+  <!-- ============ PROFIL ============ -->
+  <section id="view-profile" class="view" hidden>
+    <div class="card profile-hero" id="profileHero" role="button" aria-label="Edit nama">
+      <div class="avatar" id="profileAvatar">A</div>
+      <div class="profile-greet" id="profileGreeting">Selamat pagi 👋</div>
+      <div class="profile-name" id="profileName">Pengguna Arus</div>
+      <div class="profile-sub">Ketuk untuk ganti nama</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Perjalanan</h2></div>
+      <div class="profile-stats">
+        <div class="ps-item"><span class="ps-label">Saldo</span><span class="ps-val" id="pStatsSaldo">Rp 0</span></div>
+        <div class="ps-item"><span class="ps-label">Total transaksi</span><span class="ps-val" id="pStatsCount">0 transaksi</span></div>
+        <div class="ps-item"><span class="ps-label">Sejak</span><span class="ps-val" id="pStatsSince">—</span></div>
+        <div class="ps-item"><span class="ps-label">Kategori teratas</span><span class="ps-val" id="pStatsTopCat">—</span></div>
+        <div class="ps-item" style="grid-column:1/-1"><span class="ps-label">Komitmen</span><span class="ps-val" id="pStatsDays">Belum mulai</span></div>
+      </div>
+      <p class="hint" id="profileEmptyNote" hidden>Belum ada data — mulai dari tombol + di tengah bawah.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Target tabungan</h2><span class="chip" id="targetBarPct">0%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="targetBarFill" style="width:0%"></div></div>
+      <div class="target-row">
+        <button class="btn ghost" id="profileTarget">20%</button>
+        <span class="hint" id="targetHint" style="margin:0">Catat pemasukan bulan ini untuk mulai target.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Preferensi</h2></div>
+      <div class="setting-row">
+        <div><div class="setting-title">Mata uang</div><div class="setting-desc">Format angka & laporan</div></div>
+        <span class="chip">IDR (Rp)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Tentang</h2></div>
+      <p class="hint">Semua data tersimpan lokal di perangkatmu. Tanpa akun, tanpa server, tanpa iklan — privasimu sepenuhnya milikmu.</p>
+    </div>
+  </section>
+</main>
+
+<!-- ============ NAV BAWAH ============ -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-goto="dash">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+    <span>Ringkasan</span>
+  </button>
+  <button class="nav-item" data-goto="history">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <span>Riwayat</span>
+  </button>
+  <div class="nav-fab-wrap"><button id="fabAdd" class="fab" aria-label="Catat transaksi">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+  </button></div>
+  <button class="nav-item" data-goto="profile">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <span>Profil</span>
+  </button>
+  <button class="nav-item" data-goto="settings">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.08A1.7 1.7 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.08a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1.03z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Atur</span>
+  </button>
+</nav>
+
+<!-- ============ SHEET CATAT ============ -->
+<div id="sheetOverlay" class="overlay" hidden>
+  <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="Catat transaksi">
+    <div class="sheet-handle"></div>
+    <div id="sheetTitle" class="sheet-title">Catat transaksi</div>
+    <div class="seg" id="typeSeg">
+      <button class="seg-btn active" data-type="out">Pengeluaran</button>
+      <button class="seg-btn" data-type="in">Pemasukan</button>
+    </div>
+    <div class="amount-box">
+      <input id="amountInput" class="amount-input" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+      <span class="amount-cur">Rp</span>
+    </div>
+    <div class="chips" id="amountChips">
+      <button class="chip-btn" data-amt="10000">10 rb</button>
+      <button class="chip-btn" data-amt="20000">20 rb</button>
+      <button class="chip-btn" data-amt="50000">50 rb</button>
+      <button class="chip-btn" data-amt="100000">100 rb</button>
+    </div>
+    <div class="cat-grid" id="catGrid"></div>
+    <div class="sheet-fields">
+      <div class="field"><label class="field-label" for="noteInput">Catatan</label>
+        <input id="noteInput" class="text-input" type="text" placeholder="Opsional" autocomplete="off" maxlength="60"></div>
+      <div class="field"><label class="field-label" for="dateInput">Tanggal</label>
+        <input id="dateInput" class="text-input" type="date"></div>
+    </div>
+    <div class="sheet-actions">
+      <button id="cancelTx" class="btn ghost">Batal</button>
+      <button id="saveTx" class="btn primary" disabled>Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<!-- Gmail-style undo snackbar (bottom, above nav) -->
+<div id="undoSnack" class="undo-snack" hidden>
+  <span class="undo-dot" aria-hidden="true"></span>
+  <span class="undo-msg">Transaksi dihapus</span>
+  <button type="button" class="snack-act" data-snack-batal="">Batal</button>
+</div>
+
+<!-- menu aksi item (⋮) -->
+<div id="txMenu" class="tx-menu" hidden>
+  <button id="txMenuEdit" class="tx-menu-item">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Edit
+  </button>
+  <button id="txMenuDel" class="tx-menu-item danger">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Hapus
+  </button>
+</div>
+
+<!-- dialog konfirmasi hapus (in-app) -->
+<div id="dlgOverlay" class="overlay dlg-overlay" hidden>
+  <div class="dlg" role="alertdialog" aria-modal="true" aria-label="Konfirmasi hapus">
+    <div id="dlgTitle" class="dlg-title">Hapus transaksi?</div>
+    <p id="dlgMsg" class="dlg-msg">Transaksi ini akan dihapus permanen.</p>
+    <label class="dlg-check"><input type="checkbox" id="dlgNoAsk"> <span>Jangan tanya lagi</span></label>
+    <div class="dlg-actions">
+      <button id="dlgCancel" class="btn ghost">Batal</button>
+      <button id="dlgConfirm" class="btn danger hold-btn" data-label="Hapus">Hapus</button>
+    </div>
+  </div>
+</div>
+<!-- dialog edit nama (in-app) -->
+<div id="nameOverlay" class="overlay dlg-overlay" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-label="Edit nama">
+    <div class="dlg-title">Nama kamu</div>
+    <p class="dlg-msg">Dipakai untuk sapaan & avatar di halaman Profil.</p>
+    <input type="text" id="nameInput" class="dlg-input" maxlength="24" placeholder="Ketik nama..." autocomplete="off">
+    <div class="dlg-actions">
+      <button id="nameCancel" class="btn ghost">Batal</button>
+      <button id="nameSave" class="btn primary">Simpan</button>
+    </div>
+  </div>
+</div>
+<script src="app.js?v=12"></script>
+</body>
+</html>
