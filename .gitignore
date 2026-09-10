@@ -13,3 +13,18 @@ Thumbs.db
 
 # Misc
 *.log
+
+# Android build output — jangan commit
+out/
+*.apk
+*.idsig
+
+# Keystore — JANGAN commit ke publik! backup manual
+*.keystore
+*.jks
+
+# Generated assets (dibuat otomatis oleh build.sh dari root)
+# (tetap diabaikan biar tidak dobel; build.sh sync tiap build)
+# app/src/main/assets/index.html
+# app/src/main/assets/app.js
+# app/src/main/assets/styles.css

@@ -39,6 +39,20 @@ device emulation (`Ctrl+Shift+M`) biar persis kayak di HP.
 
 ## Roadmap
 
-- [ ] Build APK (PWA / WebView wrapper)
+- [x] Build APK (WebView wrapper, tanpa Gradle — lihat `build.sh` + `app/`)
 - [ ] Export/import CSV
 - [ ] Budget per kategori
+
+## Build APK
+
+Web di root (`index.html`, `app.js`, `styles.css`, `fonts/`) adalah sumber utama.
+`build.sh` otomatis sync ke `app/src/main/assets/` lalu build via `aapt2`/`javac`/`d8`.
+
+```bash
+# siapkan Android SDK (atau set ANDROID_SDK_ROOT)
+export ANDROID_SDK_ROOT=/path/ke/Android_SDK
+./build.sh
+```
+
+Hasil: `Arus.apk` (jangan commit — rilis via GitHub Releases).
+Keystore (`*.keystore`) jangan commit ke publik.
